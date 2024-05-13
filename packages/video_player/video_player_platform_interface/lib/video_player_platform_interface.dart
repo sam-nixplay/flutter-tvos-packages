@@ -5,6 +5,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:video_player_avfoundation/video_player_avfoundation.dart';
 
 /// The interface that implementations of video_player must implement.
 ///
@@ -19,7 +20,11 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static VideoPlayerPlatform _instance = _PlaceholderImplementation();
+  static const tvMode = String.fromEnvironment('TV_MODE');
+
+  static bool get isTv => tvMode == 'ON';
+
+  static VideoPlayerPlatform _instance = isTv ? AVFoundationVideoPlayer() : _PlaceholderImplementation();
 
   /// The instance of [VideoPlayerPlatform] to use.
   ///
