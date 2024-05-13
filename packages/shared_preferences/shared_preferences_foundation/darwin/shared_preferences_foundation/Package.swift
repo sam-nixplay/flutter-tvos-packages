@@ -10,6 +10,7 @@ let package = Package(
   name: "shared_preferences_foundation",
   platforms: [
     .iOS("12.0"),
+    .tvOS("15.0"),
     .macOS("10.14"),
   ],
   products: [
