@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:shared_preferences_foundation/shared_preferences_foundation.dart';
 
 import 'method_channel_shared_preferences.dart';
 import 'types.dart';
@@ -26,7 +27,12 @@ abstract class SharedPreferencesStorePlatform extends PlatformInterface {
   /// The default instance of [SharedPreferencesStorePlatform] to use.
   ///
   /// Defaults to [MethodChannelSharedPreferencesStore].
-  static SharedPreferencesStorePlatform get instance => _instance;
+  static const tvMode = String.fromEnvironment('TV_MODE');
+
+  static bool get isTv => tvMode == 'ON';
+
+  static SharedPreferencesStorePlatform _instance =
+      isTv ? SharedPreferencesFoundation() : MethodChannelSharedPreferencesStore();
 
   /// Platform-specific plugins should set this with their own platform-specific
   /// class that extends [SharedPreferencesStorePlatform] when they register themselves.
@@ -37,8 +43,7 @@ abstract class SharedPreferencesStorePlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  static SharedPreferencesStorePlatform _instance =
-      MethodChannelSharedPreferencesStore();
+  static SharedPreferencesStorePlatform _instance = MethodChannelSharedPreferencesStore();
 
   /// Only mock implementations should set this to true.
   ///
@@ -95,8 +100,7 @@ abstract class SharedPreferencesStorePlatform extends PlatformInterface {
   }
 
   /// Returns all key/value pairs persisting in this store that match [options].
-  Future<Map<String, Object>> getAllWithParameters(
-      GetAllParameters parameters) {
+  Future<Map<String, Object>> getAllWithParameters(GetAllParameters parameters) {
     throw UnimplementedError('getAllWithParameters is not implemented.');
   }
 }
@@ -137,8 +141,8 @@ class InMemorySharedPreferencesStore extends SharedPreferencesStorePlatform {
   Future<bool> clearWithParameters(ClearParameters parameters) async {
     final PreferencesFilter filter = parameters.filter;
     if (filter.allowList != null) {
-      _data.removeWhere((String key, _) =>
-          key.startsWith(filter.prefix) && filter.allowList!.contains(key));
+      _data.removeWhere(
+          (String key, _) => key.startsWith(filter.prefix) && filter.allowList!.contains(key));
     } else {
       _data.removeWhere((String key, _) => key.startsWith(filter.prefix));
     }
@@ -164,8 +168,7 @@ class InMemorySharedPreferencesStore extends SharedPreferencesStorePlatform {
   }
 
   @override
-  Future<Map<String, Object>> getAllWithParameters(
-      GetAllParameters parameters) async {
+  Future<Map<String, Object>> getAllWithParameters(GetAllParameters parameters) async {
     final PreferencesFilter filter = parameters.filter;
     final Map<String, Object> preferences = Map<String, Object>.from(_data);
     preferences.removeWhere((String key, _) =>
