@@ -10,6 +10,7 @@ let package = Package(
   name: "video_player_avfoundation",
   platforms: [
     .iOS("12.0"),
+    .tvOS("15.0"),
     .macOS("10.14"),
   ],
   products: [
@@ -20,7 +21,7 @@ let package = Package(
     .target(
       name: "video_player_avfoundation",
       dependencies: [
-        .target(name: "video_player_avfoundation_ios", condition: .when(platforms: [.iOS])),
+        .target(name: "video_player_avfoundation_ios", condition: .when(platforms: [.tvOS, .iOS])),
         .target(name: "video_player_avfoundation_macos", condition: .when(platforms: [.macOS])),
       ],
       resources: [
