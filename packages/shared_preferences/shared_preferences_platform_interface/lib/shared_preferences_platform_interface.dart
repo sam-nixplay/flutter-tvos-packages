@@ -31,8 +31,7 @@ abstract class SharedPreferencesStorePlatform extends PlatformInterface {
 
   static bool get isTv => tvMode == 'ON';
 
-  static SharedPreferencesStorePlatform _instance =
-      isTv ? SharedPreferencesFoundation() : MethodChannelSharedPreferencesStore();
+  static SharedPreferencesStorePlatform get instance => _instance;
 
   /// Platform-specific plugins should set this with their own platform-specific
   /// class that extends [SharedPreferencesStorePlatform] when they register themselves.
@@ -43,7 +42,8 @@ abstract class SharedPreferencesStorePlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  static SharedPreferencesStorePlatform _instance = MethodChannelSharedPreferencesStore();
+  static SharedPreferencesStorePlatform _instance =
+      isTv ? SharedPreferencesFoundation() : MethodChannelSharedPreferencesStore();
 
   /// Only mock implementations should set this to true.
   ///
