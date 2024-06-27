@@ -25,8 +25,12 @@ class PathProviderFoundation extends PathProviderPlatform {
   }
 
   @override
-  Future<String?> getTemporaryPath() {
-    return _pathProvider.getDirectoryPath(DirectoryType.temp);
+  Future<String?> getTemporaryPath() async {
+    print('getTemporaryPath is being called in PathProviderFoundation');
+    final String? path =
+        await _pathProvider.getDirectoryPath(DirectoryType.temp);
+    print('getDirectoryPath returned $path');
+    return path;
   }
 
   @override

@@ -35,6 +35,7 @@ class MissingPlatformDirectoryException implements Exception {
   }
 }
 
+/// Checks if the platform is tvOS
 bool get isTvOS =>
     Platform.isIOS && const String.fromEnvironment('TV_MODE') == 'ON';
 
