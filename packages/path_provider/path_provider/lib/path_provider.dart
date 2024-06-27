@@ -5,6 +5,7 @@
 import 'dart:io' show Directory, Platform;
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:path_provider_foundation/path_provider_foundation.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 
 export 'package:path_provider_platform_interface/path_provider_platform_interface.dart'
@@ -39,7 +40,8 @@ class MissingPlatformDirectoryException implements Exception {
 bool get isTvOS =>
     Platform.isIOS && const String.fromEnvironment('TV_MODE') == 'ON';
 
-PathProviderPlatform get _platform => PathProviderPlatform.instance;
+PathProviderPlatform get _platform =>
+    isTvOS ? PathProviderFoundation() : PathProviderPlatform.instance;
 
 /// Path to the temporary directory on the device that is not backed up and is
 /// suitable for storing caches of downloaded files.
