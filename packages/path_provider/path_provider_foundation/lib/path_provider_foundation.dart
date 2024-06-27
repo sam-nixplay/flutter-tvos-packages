@@ -9,7 +9,7 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 
 import 'messages.g.dart';
 
-/// The iOS and macOS implementation of [PathProviderPlatform].
+/// The iOS, tvOS, and macOS implementation of [PathProviderPlatform].
 class PathProviderFoundation extends PathProviderPlatform {
   /// Constructor that accepts a testable PathProviderPlatformProvider.
   PathProviderFoundation({
@@ -47,7 +47,11 @@ class PathProviderFoundation extends PathProviderPlatform {
   }
 
   @override
-  Future<String?> getApplicationDocumentsPath() {
+  Future<String?> getApplicationDocumentsPath() async {
+    if (_platformProvider.isTvOS) {
+      // tvOS doesn't have a writable documents directory, use cache directory instead
+      return getApplicationCachePath();
+    }
     return _pathProvider.getDirectoryPath(DirectoryType.applicationDocuments);
   }
 
@@ -85,15 +89,18 @@ class PathProviderFoundation extends PathProviderPlatform {
 
   @override
   Future<String?> getDownloadsPath() {
+    if (_platformProvider.isTvOS) {
+      throw UnsupportedError('getDownloadsPath is not supported on tvOS');
+    }
     return _pathProvider.getDirectoryPath(DirectoryType.downloads);
   }
 
   /// Returns the path to the container of the specified App Group.
-  /// This is only supported for iOS.
+  /// This is only supported for iOS and tvOS.
   Future<String?> getContainerPath({required String appGroupIdentifier}) async {
-    if (!_platformProvider.isIOS) {
+    if (!_platformProvider.isIOS && !_platformProvider.isTvOS) {
       throw UnsupportedError(
-          'getContainerPath is not supported on this platform');
+          'getContainerPath is only supported on iOS and tvOS');
     }
     return _pathProvider.getContainerPath(appGroupIdentifier);
   }
@@ -104,4 +111,8 @@ class PathProviderFoundation extends PathProviderPlatform {
 class PathProviderPlatformProvider {
   /// Specifies whether the current platform is iOS.
   bool get isIOS => Platform.isIOS;
+
+  /// Specifies whether the current platform is tvOS.
+  bool get isTvOS =>
+      Platform.isIOS && const String.fromEnvironment('TV_MODE') == 'ON';
 }

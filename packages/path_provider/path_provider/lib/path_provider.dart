@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io' show Directory;
+import 'dart:io' show Directory, Platform;
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
@@ -35,6 +35,9 @@ class MissingPlatformDirectoryException implements Exception {
   }
 }
 
+bool get isTvOS =>
+    Platform.isIOS && const String.fromEnvironment('TV_MODE') == 'ON';
+
 PathProviderPlatform get _platform => PathProviderPlatform.instance;
 
 /// Path to the temporary directory on the device that is not backed up and is
@@ -52,11 +55,13 @@ PathProviderPlatform get _platform => PathProviderPlatform.instance;
 /// Throws a [MissingPlatformDirectoryException] if the system is unable to
 /// provide the directory.
 Future<Directory> getTemporaryDirectory() async {
+  print('getTemporaryDirectory called. isTvOS: $isTvOS');
   final String? path = await _platform.getTemporaryPath();
   if (path == null) {
     throw MissingPlatformDirectoryException(
         'Unable to get temporary directory');
   }
+  print('Temporary directory path: $path');
   return Directory(path);
 }
 

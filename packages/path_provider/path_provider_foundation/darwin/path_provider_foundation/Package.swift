@@ -11,6 +11,7 @@ let package = Package(
   platforms: [
     .iOS("12.0"),
     .macOS("10.14"),
+    .tvOS("12.0"),  // Add tvOS platform
   ],
   products: [
     .library(name: "path-provider-foundation", targets: ["path_provider_foundation"])

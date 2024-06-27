@@ -1,75 +1,51 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import Foundation
-
-#if os(iOS)
+#if canImport(Flutter)
   import Flutter
-#elseif os(macOS)
+#elseif canImport(FlutterMacOS)
   import FlutterMacOS
 #endif
 
 public class PathProviderPlugin: NSObject, FlutterPlugin, PathProviderApi {
   public static func register(with registrar: FlutterPluginRegistrar) {
+    let messenger = registrar.messenger()
     let instance = PathProviderPlugin()
-    // Workaround for https://github.com/flutter/flutter/issues/118103.
-    #if os(iOS)
-      let messenger = registrar.messenger()
-    #else
-      let messenger = registrar.messenger
-    #endif
     PathProviderApiSetup.setUp(binaryMessenger: messenger, api: instance)
   }
 
-  func getDirectoryPath(type: DirectoryType) -> String? {
-    var path = getDirectory(ofType: fileManagerDirectoryForType(type))
-    #if os(macOS)
-      // In a non-sandboxed app, these are shared directories where applications are
-      // expected to use its bundle ID as a subdirectory. (For non-sandboxed apps,
-      // adding the extra path is harmless).
-      // This is not done for iOS, for compatibility with older versions of the
-      // plugin.
-      if type == .applicationSupport || type == .applicationCache {
-        if let basePath = path {
-          let basePathURL = URL.init(fileURLWithPath: basePath)
-          path = basePathURL.appendingPathComponent(Bundle.main.bundleIdentifier!).path
-        }
+  func getDirectoryPath(type: DirectoryType) throws -> String? {
+    print("getDirectoryPath called for type: \(type)")
+    let isTvOS = ProcessInfo.processInfo.environment["TV_MODE"] == "ON"
+    print("Is tvOS: \(isTvOS)")
+    
+    var searchPathDirectory: FileManager.SearchPathDirectory
+    switch type {
+    case .applicationSupport:
+      searchPathDirectory = .applicationSupportDirectory
+    case .applicationCache:
+      searchPathDirectory = .cachesDirectory
+    case .applicationDocuments:
+      searchPathDirectory = isTvOS ? .cachesDirectory : .documentDirectory
+    case .downloads:
+      if isTvOS {
+        print("Downloads directory not available on tvOS")
+        return nil
       }
-    #endif
-    return path
+      searchPathDirectory = .downloadsDirectory
+    case .library:
+      searchPathDirectory = .libraryDirectory
+    case .temp:
+      return NSTemporaryDirectory()
+    }
+    
+    let paths = NSSearchPathForDirectoriesInDomains(
+      searchPathDirectory,
+      .userDomainMask,
+      true
+    )
+    return paths.first
   }
 
-  // Returns the path for the container of the specified app group.
-  func getContainerPath(appGroupIdentifier: String) -> String? {
-    return FileManager.default.containerURL(
-      forSecurityApplicationGroupIdentifier: appGroupIdentifier)?.path
+  func getContainerPath(appGroupIdentifier: String) throws -> String? {
+    return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)?.path
   }
-}
-
-/// Returns the FileManager constant corresponding to the given type.
-private func fileManagerDirectoryForType(_ type: DirectoryType) -> FileManager.SearchPathDirectory {
-  switch type {
-  case .applicationCache:
-    return FileManager.SearchPathDirectory.cachesDirectory
-  case .applicationDocuments:
-    return FileManager.SearchPathDirectory.documentDirectory
-  case .applicationSupport:
-    return FileManager.SearchPathDirectory.applicationSupportDirectory
-  case .downloads:
-    return FileManager.SearchPathDirectory.downloadsDirectory
-  case .library:
-    return FileManager.SearchPathDirectory.libraryDirectory
-  case .temp:
-    return FileManager.SearchPathDirectory.cachesDirectory
-  }
-}
-
-/// Returns the user-domain directory of the given type.
-private func getDirectory(ofType directory: FileManager.SearchPathDirectory) -> String? {
-  let paths = NSSearchPathForDirectoriesInDomains(
-    directory,
-    FileManager.SearchPathDomainMask.userDomainMask,
-    true)
-  return paths.first
 }
